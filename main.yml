@@ -1,0 +1,73 @@
+- hosts: 127.0.0.1
+  connection: local
+  vars_files:
+    - vars/main.yml
+  tasks:
+    - name: create database container
+      docker:
+        name: tmp-oracle-soa-database
+        image: "{{ base_image }}"
+        command: "$ORACLE_HOME/bin/dbstart $ORACLE_HOME && sleep infinity"
+        env:
+          - ORACLE_SID=orcl
+          - ORACLE_HOME=/home/oracle/product/oracle_home
+        state: started
+
+
+    - name: create soa rcu container
+      docker:
+        name: tmp-oracle-soa-rcu
+        image: "{{ base_rcu_image }}"
+        links:
+          - tmp-oracle-soa-database:soa-database
+        command: sleep infinity
+        state: started
+
+    - add_host:
+        name: tmp-oracle-soa-database
+        groups: docker
+        ansible_connection: docker
+
+    - add_host:
+        name: tmp-oracle-soa-rcu
+        groups: docker
+        ansible_connection: docker
+
+- hosts: tmp-oracle-soa-rcu
+  connection: docker
+  tasks:
+    - copy:
+        src: rcu-passwd.txt
+        dest: /opt/oraclefmw/rcu-passwd.txt
+
+    - shell: "/opt/oraclefmw/product/oracle_home/oracle_common/bin/rcu -silent -createRepository -databaseType ORACLE -connectString soa-database:1521:orcl -dbUser sys -dbRole SYSDBA -schemaPrefix DEV -component SOAINFRA -component OPSS -component IAU -component MDS -component WLS -component UCSUMS -component IAU_APPEND -component IAU_VIEWER -f < /opt/oraclefmw/rcu-passwd.txt >> /opt/oraclefmw/rcu.log"
+      register: rcu
+      ignore_errors: yes
+
+    - debug:
+        var: rcu
+
+- hosts: 127.0.0.1
+  connection: local
+  vars_files:
+    - vars/main.yml
+  tasks:
+    - name: docker commit
+      command: "docker commit tmp-oracle-soa-database {{ image_name }}:{{ item }}"
+      with_items: "{{ tags }}"
+
+    - name: docker push
+      command: "docker push {{ image_name }}:{{ item }}"
+      with_items: "{{ tags }}"
+
+    - name: docker kill
+      command: "docker kill {{ item }}"
+      with_items:
+        - tmp-oracle-soa-database
+        - tmp-oracle-soa-rcu
+
+    - name: docker rm
+      command: "docker rm {{ item }}"
+      with_items:
+        - tmp-oracle-soa-database
+        - tmp-oracle-soa-rcu
