@@ -1,4 +1,4 @@
-base_image: syscomiddleware/oracle-database:oraclelinux-11.2.0.4
+base_image: syscomiddleware/oracle-database-instance:oraclelinux-11.2.0.4
 base_rcu_image: syscomiddleware/oracle-soa:centos-12.2.1-qs
 image_name: syscomiddleware/oracle-soa-database
 tags:
