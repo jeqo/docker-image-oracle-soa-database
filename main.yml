@@ -17,6 +17,8 @@
           - tmp-oracle-soa-database:soa-database
         command: sleep infinity
         state: started
+        env:
+          JAVA_HOME: /usr/java/latest
 
     - add_host:
         name: tmp-oracle-soa-database
