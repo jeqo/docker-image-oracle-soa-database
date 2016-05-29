@@ -30,11 +30,22 @@
         groups: docker
         ansible_connection: docker
 
-    - wait_for: timeout=20
-
 - hosts: tmp-oracle-soa-rcu
   connection: docker
   tasks:
+    - shell: tnsping soa-database:1521/orcl
+      register: result
+      until: result.stdout.find('OK') == 0
+      retries: 18
+      delay: 10
+
+
+    - debug:
+        var: result
+
+    - debug:
+        var: result.stdout.find('OK')
+
     - copy:
         src: rcu-passwd.txt
         dest: /opt/oraclefmw/rcu-passwd.txt
