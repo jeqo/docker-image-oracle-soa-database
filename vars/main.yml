@@ -1,6 +1,4 @@
-base_image: syscomiddleware/oracle-database-instance:oraclelinux-11.2.0.4
-base_rcu_image: syscomiddleware/oracle-soa:centos-12.2.1-qs
+base_image: syscomiddleware/oracle-database-instance:basic-11.2.0.4-se-oraclelinux6.7
+base_rcu_image: syscomiddleware/oracle-soa:soa-qs-12.2.1-jdk8-centos7
 image_name: syscomiddleware/oracle-soa-database
-tags:
-  - latest
-  - oraclelinux-soa-12.2.1-qs
+tag: soa-qs-12.2.1-basic-11.2.0.4-se-oraclelinux6.7

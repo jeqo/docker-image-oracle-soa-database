@@ -17,6 +17,8 @@
           - tmp-oracle-soa-database:soa-database
         command: sleep infinity
         state: started
+        env:
+          JAVA_HOME: /usr/java/latest
 
     - add_host:
         name: tmp-oracle-soa-database
@@ -28,11 +30,22 @@
         groups: docker
         ansible_connection: docker
 
-    - wait_for: timeout=20
-
 - hosts: tmp-oracle-soa-rcu
   connection: docker
   tasks:
+    - shell: tnsping soa-database:1521/orcl
+      register: result
+      until: result.stdout.find('OK') == 0
+      retries: 18
+      delay: 10
+
+
+    - debug:
+        var: result
+
+    - debug:
+        var: result.stdout.find('OK')
+
     - copy:
         src: rcu-passwd.txt
         dest: /opt/oraclefmw/rcu-passwd.txt
@@ -50,8 +63,7 @@
     - vars/main.yml
   tasks:
     - name: docker commit
-      command: "docker commit tmp-oracle-soa-database {{ image_name }}:{{ item }}"
-      with_items: "{{ tags }}"
+      command: "docker commit tmp-oracle-soa-database {{ image_name }}:{{ tag }}"
 
     - name: docker kill
       command: "docker kill {{ item }}"
