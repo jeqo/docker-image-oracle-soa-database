@@ -63,8 +63,7 @@
     - vars/main.yml
   tasks:
     - name: docker commit
-      command: "docker commit tmp-oracle-soa-database {{ image_name }}:{{ item }}"
-      with_items: "{{ tags }}"
+      command: "docker commit tmp-oracle-soa-database {{ image_name }}:{{ tag }}"
 
     - name: docker kill
       command: "docker kill {{ item }}"
